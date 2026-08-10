@@ -1,20 +1,11 @@
-# Mon Menu — V2
+# Mon Menu V3
 
-Application web installable sur iPhone (PWA).
+Nouvelle logique : « Composer ma semaine » génère directement une proposition. L'utilisateur peut changer chaque repas individuellement puis valider la semaine. Les déjeuners du mardi au vendredi suivent automatiquement le dîner de la veille.
 
-V2 :
-- planning déjeuners/dîners, sans petits-déjeuners
-- règles de menu visibles
-- bibliothèque + recherche
-- notes ⭐/5
-- statut À tester / Ne plus proposer
-- ajout de captures d'écran de recettes
-- liste de courses
-- gestion de restes/placards
-- budget cible
-- sauvegarde/export/import
-- planning automatique des déjeuners à partir des dîners
+La sélection est actuellement locale/règle-based ; l'architecture est prête à être reliée à une IA pour :
+- analyser les recettes/screenshots
+- personnaliser les propositions
+- tenir compte des notes, historique, budget, restes, saison et contraintes
+- proposer des alternatives en langage naturel.
 
-Pour l'installer : héberger ce dossier en HTTPS, ouvrir l'URL dans Safari, puis Partager → Ajouter à l'écran d'accueil.
-
-Limitation actuelle : l'OCR/lecture automatique du texte d'une capture n'est pas encore connecté à un service d'IA. La capture est conservée et peut être complétée manuellement.
+Installer via GitHub Pages puis Safari → Partager → Ajouter à l'écran d'accueil.
