@@ -24,7 +24,7 @@ export default async function handler(request) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: "gpt-5",
+        model: "gpt-5-mini",
         input: [{
           role: "user",
           content: [
@@ -77,8 +77,9 @@ Extrais le nom, ingrédients et quantités, étapes, protéines estimées par po
     const result = await response.json();
 
     if (!response.ok) {
+      console.error("OpenAI API error:", result);
       return Response.json(
-        { error: result?.error?.message || "Erreur OpenAI." },
+        { error: result?.error?.message || `Erreur OpenAI (${response.status}).` },
         { status: response.status }
       );
     }
