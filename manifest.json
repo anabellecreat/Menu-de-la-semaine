@@ -1,0 +1,17 @@
+{
+  "name": "Mon Menu",
+  "short_name": "Mon Menu",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f4ef",
+  "theme_color": "#f7f4ef",
+  "lang": "fr-FR",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
