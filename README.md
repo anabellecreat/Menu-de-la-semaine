@@ -1,14 +1,13 @@
-# Mon Menu — IA V1
+# Mon Menu — IA V3
 
-Ajoute une analyse IA des captures de recettes.
+Version optimisée après les timeouts Vercel.
 
-Architecture :
-- index.html : application
-- api/recipe.js : fonction Vercel sécurisée
-- OPENAI_API_KEY : variable d'environnement Vercel
+- image convertie côté iPhone en JPEG ~1200 px / compression 68 %
+- appel OpenAI via Chat Completions avec `gpt-4o-mini`
+- détail image `low` pour accélérer l'analyse
+- sortie JSON compacte
+- timeout applicatif de 20 s avec message clair
+- `vercel.json` configure la fonction jusqu'à 60 s
 
-Important : utilise l'URL Vercel pour l'application, pas uniquement GitHub Pages, car GitHub Pages n'exécute pas /api/recipe.
-
-Après déploiement : 📸 Trouvée → choisir une capture → 🤖 Analyser avec l'IA.
-
-Ne partage jamais ta clé OPENAI_API_KEY.
+La clé `OPENAI_API_KEY` doit rester uniquement dans les variables d'environnement Vercel.
+Utiliser l'URL Vercel pour l'application.

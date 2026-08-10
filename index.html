@@ -107,18 +107,47 @@ a.innerHTML=`<div class="card"><h2>📸 J'ai trouvé une recette</h2>
 <div class="card"><h2>💡 À tester</h2>${data.capture.length?data.capture.map(c=>`<div class="card"><strong>${esc(c.name)}</strong>${c.img?`<img class="recipe-img" src="${c.img}">`:""}<p class="small">${esc(c.text||"")}</p><button class="secondary" onclick="promote('${c.id}')">Ajouter aux recettes</button></div>`).join(""):`<div class="small">Aucune recette sauvegardée.</div>`}</div>`;
 document.getElementById("file").onchange=e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=()=>document.getElementById("prev").innerHTML=`<img class="recipe-img" src="${rd.result}">`;rd.readAsDataURL(f)}
 }
+async function fileToJpegDataUrl(file){
+  const source = await new Promise((resolve,reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Le format de cette image n'est pas lisible par Safari."))};
+    img.src=url;
+  });
+  const max=1200;
+  const scale=Math.min(1,max/Math.max(source.naturalWidth,source.naturalHeight));
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.round(source.naturalWidth*scale);
+  canvas.height=Math.round(source.naturalHeight*scale);
+  const ctx=canvas.getContext("2d");
+  ctx.drawImage(source,0,0,canvas.width,canvas.height);
+  return canvas.toDataURL("image/jpeg",0.68);
+}
 async function analyzeRecipe(){
-const file=document.getElementById("file").files[0], result=document.getElementById("aiResult"), btn=document.getElementById("analyzeBtn");
-if(!file){result.innerHTML='<p class="dangerText">Choisis d’abord une capture.</p>';return}
-btn.disabled=true;btn.textContent="🤖 Analyse en cours…";
-try{
-const image=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});
-const res=await fetch("/api/recipe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image,extraText:document.getElementById("ct").value})});
-const json=await res.json(); if(!res.ok) throw new Error(json.error||"Erreur inconnue");
-const r=json.recipe; window.__lastAIRecipe={...r,image};
-result.innerHTML=`<div class="card"><h3>${esc(r.name)}</h3><p><b>💪 ~${r.proteinPerPortion} g/portion</b> · ♻️ ${r.leftoversScore}/5</p><div>${(r.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div><h3>Ingrédients</h3><ul>${(r.ingredients||[]).map(i=>`<li>${esc(i)}</li>`).join("")}</ul><h3>Préparation</h3><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol><p class="small">${esc(r.notes||"")}</p><div class="row"><button onclick="saveAIRecipe('test')">💡 À tester</button><button class="secondary" onclick="saveAIRecipe('active')">✅ Ajouter aux recettes</button></div></div>`;
-}catch(e){result.innerHTML=`<p class="dangerText">Impossible d’analyser : ${esc(e.message)}</p>`}
-btn.disabled=false;btn.textContent="🤖 Analyser avec l’IA";
+  const file=document.getElementById("file").files[0];
+  const result=document.getElementById("aiResult");
+  const btn=document.getElementById("analyzeBtn");
+  if(!file){result.innerHTML='<p class="dangerText">Choisis d’abord une capture.</p>';return}
+  btn.disabled=true;btn.textContent="🤖 Analyse en cours…";result.innerHTML='<p class="small">Je lis la recette…</p>';
+  try{
+    const image=await fileToJpegDataUrl(file);
+    const res=await fetch("/api/recipe",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({image,extraText:document.getElementById("ct").value})
+    });
+    const raw=await res.text();
+    let json={};
+    try{json=JSON.parse(raw)}catch{throw new Error("Le serveur n'a pas renvoyé une réponse valide.")};
+    if(!res.ok) throw new Error(json.error||"Erreur du serveur");
+    const r=json.recipe;
+    window.__lastAIRecipe={...r,image};
+    result.innerHTML=`<div class="card"><h3>${esc(r.name)}</h3><p><b>💪 ~${r.proteinPerPortion} g/portion</b> · ♻️ ${r.leftoversScore}/5</p><div>${(r.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div><h3>Ingrédients</h3><ul>${(r.ingredients||[]).map(i=>`<li>${esc(i)}</li>`).join("")}</ul><h3>Préparation</h3><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol><p class="small">${esc(r.notes||"")}</p><div class="row"><button onclick="saveAIRecipe('test')">💡 À tester</button><button class="secondary" onclick="saveAIRecipe('active')">✅ Ajouter aux recettes</button></div></div>`;
+  }catch(e){
+    result.innerHTML=`<p class="dangerText">Impossible d’analyser : ${esc(e.message)}</p><p class="small">Si le problème continue, regarde le dernier déploiement Vercel et ses logs : on pourra identifier l'erreur exacte.</p>`;
+  }
+  btn.disabled=false;btn.textContent="🤖 Analyser avec l’IA";
 }
 function saveAIRecipe(status){
 const r=window.__lastAIRecipe;if(!r)return;
